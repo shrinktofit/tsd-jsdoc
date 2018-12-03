@@ -66,9 +66,13 @@ export default class Emitter {
             return;
         }
 
+        fs.writeFileSync(`out/debug-doclets.json`, JSON.stringify(docs, undefined, 2));
+
         // initial parse, create all the necessary objects and puts them in the
         // `objects` cache
         this._parseObjects(docs);
+
+        fs.writeFileSync(`out/debug-objects.json`, JSON.stringify(Object.keys(this.objects).filter(key => Object.keys(GLOBAL_TYPES).indexOf(key) == -1), undefined, 2));
 
         // resolve post-parse items (members, augments, implements, mixes, etc)
         this._resolveObjects(docs);
@@ -83,6 +87,12 @@ export default class Emitter {
     }
 
     emit() {
+        this.results.forEach(topLevelDeclaration => {
+            if (topLevelDeclaration.kind === 'property') {
+                console.error(`The property ${topLevelDeclaration._doclet.longname} is marked as top level declaration.` +
+                    ` Its doclet: ${JSON.stringify(topLevelDeclaration._doclet, undefined, 2)}`);
+            }
+        });
         dom.config.outputEol = this.eol;
 
         let out = '';
